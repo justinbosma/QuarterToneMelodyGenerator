@@ -1,3 +1,4 @@
+
 //Ideas for Melody Generator from "Techniques for Generative Melodies Inspired by Music Cognition"
 //Authors of paper: Andrew R Bown, Toby Gifford, Robert Davidson
 //https://www.researchgate.net/publication/274140668_Techniques_for_Generative_Melodies_Inspired_by_Music_Cognition
@@ -5,79 +6,16 @@
 //this gives a feeling of closeness of the notes/durations/amplitudes so they flow together/sound more natural/enjoyable
 
 //Set tempo clock
-TempoClock.default.tempo = 71/60;
+TempoClock.default.tempo = 120/60;
 //set memory higher. Pad was causing issues
 ~options = Server.local.options;
 ~options.memSize_(4096*8);
-
+Scale.directory;
 //Array of three octaves of quartertones starting on C3
 a = [130.81*(1/1), 130.81*(28/27), 130.81*(16/15), 130.81*(11/10), 130.81*(9/8), 130.81*(8/7), 130.81*(6/5), 130.81*(11/9), 130.81*(5/4), 130.81*(9/7), 130.81*(4/3), 130.81*(11/8), 130.81*(7/5), 130.81*(16/11), 130.81*(3/2), 130.81*(14/9), 130.81*(8/5), 130.81*(18/11), 130.81*(5/3), 130.81*(7/4), 130.81*(9/5), 130.81*(11/6), 130.81*(15/8), 130.81*(27/14), 130.81*(2/1), 261.63*(28/27), 261.63*(16/15), 261.63*(11/10), 261.63*(9/8), 261.63*(8/7), 261.63*(6/5), 261.63*(11/9), 261.63*(5/4), 261.63*(9/7), 261.63*(4/3), 261.63*(11/8), 261.63*(7/5), 261.63*(16/11), 261.63*(3/2), 261.63*(14/9), 261.63*(8/5), 261.63*(18/11), 261.63*(5/3), 261.63*(7/4), 261.63*(9/5), 261.63*(11/6), 261.63*(15/8), 261.63*(27/14), 523.25*(1/1), 523.25*(28/27), 523.25*(16/15), 523.25*(11/10), 523.25*(9/8), 523.25*(8/7), 523.25*(6/5), 523.25*(11/9), 523.25*(5/4), 523.25*(9/7), 523.25*(4/3), 523.25*(11/8), 523.25*(7/5), 523.25*(16/11), 523.25*(3/2), 523.25*(14/9), 523.25*(8/5), 523.25*(18/11), 523.25*(5/3), 523.25*(7/4), 523.25*(9/5), 523.25*(11/6), 523.25*(15/8), 523.25*(27/14), 523.25*(2/1)];
 //Duration Array
 b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/13, 1/14, 1/15, 1/16];
-//mallet sounding synthdef
-(
-    SynthDef(\mallet, {|freq, amp, gate = 1|
-        var env, out, osc;
-    env = EnvGen.kr(Env.perc(attackTime: 0.05, releaseTime:2),doneAction: 2);
-    osc = RLPF.ar(SinOsc.ar(freq: freq, mul: amp), freq: 650);
-        out = osc*env;
-        Out.ar(0,
-                Pan2.ar(out, 0));
-        };
-    ).add;
-)
-//mallet sounding synthdef with delay
-(
-    SynthDef(\mallet2, {|freq, amp, gate = 1|
-        var env, out, osc, delayTime = 0.05, delayDecay = 10;
-    env = EnvGen.kr(Env.perc(attackTime: 0.05, releaseTime:4.8),doneAction: 2);
-    osc = Resonz.ar(SinOsc.ar(freq: freq, mul: amp), freq: 220);
-        out = osc*env;
-        out = out + CombL.ar(out, delayTime, delayTime, delayDecay);
-        Out.ar(0,
-                Pan2.ar(out, 0));
-        };
-    ).add;
-)
-//drone instrument. Uses harmonic series for oscillators
-(
-    SynthDef(\drone, {|freq, gate = 1, amp, cut = 350|
-        var env, out, osc;
-    //env = EnvGen.kr(Env.adsr(0.75, 0.1, 0.5, 0.0), doneAction: 2);
-    env = EnvGen.kr(Env.new([0, 0.25, 0.5, 1, 0.35, 0.25, 0.1, 0], [1.3, 1.3, 1.0, 0.4, 3.0, 2.5, 0.5]),doneAction: 2);
-    osc = RLPF.ar(Saw.ar(freq: freq, mul: amp) + Saw.ar(freq: freq*(1/2), mul: amp) + Saw.ar(freq: freq*(1/3), mul: amp) + Saw.ar(freq: freq*(1/4), mul: amp) + Saw.ar(freq: freq*(1/5), mul: amp), freq: cut);
-        out = osc*env;
-        Out.ar(0,
-                Pan2.ar(out, 0));
-        };
-    ).add;
-)
-//bass instrument
-(
-    SynthDef(\bass, {|freq, gate = 1, amp|
-        var env, out, osc;
-    env = EnvGen.kr(Env.new([0, 0.25, 0.5, 1, 0.5, 0.25, 0.1, 0], [0.3, 0.3, 0.3, 0.5, 0.2, 0.5, 0.5]),doneAction: 2);
-        osc = SinOsc.ar(freq: freq, mul: amp);
-        out = osc*env;
-        Out.ar(0,
-                Pan2.ar(out, 0));
-        };
-    ).add;
-)
-//started out as a pad.. not sure where we are now
-(
-    SynthDef(\pad, {|freq, gate = 1, amp|
-        var env, out, osc, cut, delayTime = 1.75, delayDecay = 10;
-    cut = freq*2;
-    env = EnvGen.kr(Env.new([0.1, 0.5, 1.0, 0.8, 0.5, 0.3, 0.1], [0.5, 0.5, 1.5, 1.5, 1, 2, 2]), doneAction: 2);
-    osc = RLPF.ar(SinOscFB.ar(freq: [freq/4, freq, freq*(15/8), freq*(2), freq*(6/2), freq*(15/4)],feedback: 200, mul: amp*SinOsc.kr(3)), freq: 1000);
-        out = osc*env;
-        out = out + CombL.ar(out, delayTime, delayTime, delayDecay);
-        Out.ar(0,
-                Pan2.ar(out, 0));
-        };
-    ).add;
-)
+
 //Creates the melody
 //INPUTS
 //melodyArray: array of indices corresponding to quarter tone array
@@ -101,8 +39,9 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
         lowerBound = melodyArray.at(index);
         upperBound = melodyArray.at(index + 1);
         toneRow.add([lowerBound, 0, 0]);//add the first note (from the melodyArray) to the toneRow array
-
-        while({(lowerBound != upperBound) && (count < noteLimit) }, {//this portion creates the new notes
+		//Changing this part to exclude the reaching upperbound limit. while loop will only consist of note count
+        //while({(lowerBound != upperBound) && (count < noteLimit) }, {//this portion creates the new notes
+		while({(count < noteLimit) }, {
             lowerBound = round(gauss((upperBound + lowerBound)/2, 2));//mean is upper + lower/2, s.d. is 2
             toneRow.add([lowerBound, 0, 0]);
             count = count + 1;
@@ -183,7 +122,7 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
 //see pbind setup below
 (
 ~finish = {arg quarterToneArray, freqArray, durArray;
-    var rhythmChoices, mainArrayCounter, portionCounter, newMelodyArray, initialAmplitude, next, finalArray, count1, count2, dur, amp, note, durSum;
+    var rhythmChoices, mainArrayCounter, portionCounter, newMelodyArray, initialAmplitude, next, finalArray, count1, count2, dur, amp, note, durSum, currentDurVal;
     mainArrayCounter = 0;
     finalArray = Array.new(100);
     dur = Array.new(100);
@@ -194,11 +133,13 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
         var melodyPortion = Array.new(32);
         portionCounter = 0;
         melodyPortion = quarterToneArray.at(mainArrayCounter);
-        initialAmplitude = 1;//sets initial amplitude to 1
+		//5/2/18 -> changing this intiAmp to 1.0.rand
+		initialAmplitude = 1.0.rand;
+        //initialAmplitude = 1;//sets initial amplitude to 1
         melodyPortion.at(0).put(2, initialAmplitude);//add to first entry of 2D array in the third position
         while({portionCounter < (melodyPortion.size - 1)}, {
             next = gauss(melodyPortion.at(portionCounter).at(2), 0.5);// use gauss to find next amp
-            if((next < 0.3), {next =  0.3}, {});//restrict to 0.3 minimum
+            if((next < 0), {next =  0}, {});//restrict to 0 minimum
             if((next > 1), {next =  1}, {});//restrict to 1.0 maximum
             melodyPortion.at(portionCounter + 1).put(2, next);
             portionCounter = portionCounter + 1;
@@ -213,12 +154,19 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
         durSum = 0;
         while({count2 < newMelodyArray.at(count1).size}, {
 			//sums the durations in the melody (obtains the actual duration from the durArray
-            durSum = durSum + durArray.at(newMelodyArray.at(count1).at(count2).at(1));
+			currentDurVal = durArray.at(newMelodyArray.at(count1).at(count2).at(1));
+            durSum = durSum + currentDurVal;
+
 			//obtains the note(freq) from the freq array
-            note.add(freqArray.at(newMelodyArray.at(count1).at(count2).at(0)));
+            //note.add(freqArray.at(newMelodyArray.at(count1).at(count2).at(0)));
+
+			//Trying with different scales.. need to find a better way to do this shit... ffs
+			//this is using minor scale at middle A, i think
+			note.add(Scale.minor.degreeToFreq(newMelodyArray.at(count1).at(count2).at(0), 57.midicps, 0));
+
 			//when on the last element, check if the sum of durations is a whole number
-			// if not, use the negative of floored value of the sum minus the normal value and add to array
-            if(((count2 + 1 == newMelodyArray.at(count1).size)&&(durSum - floor(durSum) > 0)), {dur.add(-1*(floor(durSum) - durSum))}, {dur.add(durArray.at(newMelodyArray.at(count1).at(count2).at(1)))});
+			//This puts a heavy weight on the last note in the chunk.... should figure this out
+			if(((count2 + 1 == newMelodyArray.at(count1).size)&&((durSum%4)>0)), {dur.add(currentDurVal + (4-(durSum%4)))}, {dur.add(currentDurVal)});
             amp.add(newMelodyArray.at(count1).at(count2).at(2));
             count2 = count2 + 1;
         });
@@ -232,41 +180,79 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
 }
 )
 //initialize melody arrays to input into ~melody function
-~malletMelody1 = [10, 24, 10, 22, 10];
-~malletMelody2_1 = [10, 8, 30];
-~malletMelody2_2 = [10, 36, 38, 42, 10];
-~malletMelody2_3 = [10, 46, 48, 52, 10];
-~malletMelody2_4 = [10, 54, 56, 60, 10];
+~malletMelody1 = [0, 3, 8, 6, 0];
+~malletMelody2 = [7, 10, 13, 8, 7];
+~malletMelody3 = [0, 3, 5, 8, 0];
+~malletMelody4 = [7, 4, 11, 8, 7];
 ~droneMelody = [34, 40, 34];
-~bassMelody = [10, 12, 10];
+~bassMelody = [0, 2, 0];
 ~padMelody = [34, 24, 34];
 //Run the melody arrays through all the functions
+~melody.(~malletMelody1, 3);
+~duration1.(~melody.(~malletMelody1, 3), 5);
+(
 ~mallet1 = ~finish.(~duration1.(~melody.(~malletMelody1, 3), 5), a, b);
-~mallet2_1 = ~finish.(~duration1.(~melody.(~malletMelody2_1, 3), 1), a, b);
-~mallet2_2 = ~finish.(~duration1.(~melody.(~malletMelody2_2, 9), 9), a, b);
-~mallet2_3 = ~finish.(~duration1.(~melody.(~malletMelody2_3, 4), 3), a, b);
-~mallet2_4 = ~finish.(~duration1.(~melody.(~malletMelody2_4, 3), 4), a, b);
+~mallet2 = ~finish.(~duration1.(~melody.(~malletMelody2, 8), 7), a, b);
+)
+(
+~mallet3 = ~finish.(~duration1.(~melody.(~malletMelody3, 3), 7), a, b);
+~mallet4 = ~finish.(~duration1.(~melody.(~malletMelody4, 8), 3), a, b);
+)
 ~drone = ~finish.(~duration2.(~melody.(~droneMelody, 2), 0), a, b);
-~bass = ~finish.(~duration2.(~melody.(~bassMelody, 2), 1), a, b);
+~bass = ~finish.(~duration2.(~melody.(~bassMelody, 2), 3), a, b);
 ~pad = ~finish.(~duration2.(~melody.(~padMelody, 3), 1), a, b);
 
 //Screwin around
 (
 ~bassSeq = Pbind(
     \instrument, \bass,
-    \freq, Pseq( ~bass.at(0)/4, inf),
-    \dur, Pseq( ~bass.at(1), inf),
-    \amp, Pseq( ~bass.at(2), inf);
-).play(quant: 16);
+    \freq, Pseq( ~bass.at(0)/2, inf),
+    \dur, Pseq( ~bass.at(1)*2, inf),
+    \amp, Pseq( ~bass.at(2)/4, inf);
+).play(quant: 0);
 )
 (
+~mallet3Seq.stop;
+~mallet4Seq.stop;
 ~mallet1Seq = Pbind(
     \instrument, \mallet,
     \freq, Pseq( ~mallet1.at(0), inf),
-    \dur, Pseq( ~mallet1.at(1), inf),
-    \amp, Pseq( ~mallet1.at(2)*0.3, inf);
+    //\dur, 1/2,
+	\dur, Pseq( ~mallet1.at(1), inf),
+    \amp, 0.6,
+	//Pseq( ~mallet1.at(2)*0.6, inf);
+).play(quant: 0);
+
+~mallet2Seq = Pbind(
+    \instrument, \mallet,
+    \freq, Pseq( ~mallet2.at(0), inf),
+    \dur, 1/4,
+	//Pseq( ~mallet2.at(1), inf),
+    \amp, Pseq( ~mallet2.at(2)*0.5, inf);
 ).play(quant: 0);
 )
+
+(
+~mallet1Seq.stop;
+~mallet2Seq.stop;
+~mallet3Seq = Pbind(
+    \instrument, \mallet,
+    \freq, Pseq( ~mallet1.at(0), inf),
+    \dur, 1,
+	//Pseq( ~mallet1.at(1)/2, inf),
+    \amp, 0.6,
+	//Pseq( ~mallet1.at(2)*0.6, inf);
+).play(quant: 0);
+
+~mallet4Seq = Pbind(
+    \instrument, \mallet,
+    \freq, Pseq( ~mallet4.at(0), inf),
+    \dur, 1/4,
+	//Pseq( ~mallet4.at(1), inf),
+    \amp, Pseq( ~mallet4.at(2)*0.5, inf);
+).play(quant: 0);
+)
+--------------------------
 (
 ~padSeq = Pbind(
     \instrument, \pad,
@@ -282,7 +268,15 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
     \freq, Pseq( ~mallet2_1.at(0)*4, inf),
     \dur, Pseq( ~mallet2_1.at(1), inf),
     \amp, Pseq( ~mallet2_1.at(2)*0.1, inf);
-).play(quant: 16);
+).play(quant: 0);
+
+~mallet1Seq.stream = Pbind(
+    \instrument, \mallet,
+    \freq, Pseq( ~mallet1.at(0), inf),
+    \dur, 1,
+	//Pseq( ~mallet1.at(1)/2, inf),
+    \amp, Pseq( ~mallet1.at(2)*0.3, inf);
+).asStream;
 )
 (
 ~droneSeq = Pbind(
