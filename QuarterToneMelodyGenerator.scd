@@ -6,7 +6,7 @@
 //this gives a feeling of closeness of the notes/durations/amplitudes so they flow together/sound more natural/enjoyable
 
 //Set tempo clock
-TempoClock.default.tempo = 120/60;
+TempoClock.default.tempo = 70/60;
 //set memory higher. Pad was causing issues
 ~options = Server.local.options;
 ~options.memSize_(4096*8);
@@ -34,7 +34,7 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
     index = 0;
     while({index + 1 < melodyArray.size}, {//this while loop creates the sub melody arrays
         var toneRow, count;
-        toneRow = Array.new(noteLimit);//limits the sub melody array to the noteLimit
+        toneRow = Array.new(noteLimit + 1);//limits the sub melody array to the noteLimit
         count = 0;
         lowerBound = melodyArray.at(index);
         upperBound = melodyArray.at(index + 1);
@@ -162,7 +162,7 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
 
 			//Trying with different scales.. need to find a better way to do this shit... ffs
 			//this is using minor scale at middle A, i think
-			note.add(Scale.minor.degreeToFreq(newMelodyArray.at(count1).at(count2).at(0), 57.midicps, 0));
+			note.add(Scale.minor.degreeToFreq(newMelodyArray.at(count1).at(count2).at(0), 69.midicps, 0));
 
 			//when on the last element, check if the sum of durations is a whole number
 			//This puts a heavy weight on the last note in the chunk.... should figure this out
@@ -179,152 +179,4 @@ b = [8, 4, 3, 2, 1, 1/2, 1/3, 1/4, 1/5,1/6, 1/7, 1/8, 1/9, 1/10, 1/11, 1/12, 1/1
     finalArray;
 }
 )
-//initialize melody arrays to input into ~melody function
-~malletMelody1 = [0, 3, 8, 6, 0];
-~malletMelody2 = [7, 10, 13, 8, 7];
-~malletMelody3 = [0, 3, 5, 8, 0];
-~malletMelody4 = [7, 4, 11, 8, 7];
-~droneMelody = [34, 40, 34];
-~bassMelody = [0, 2, 0];
-~padMelody = [34, 24, 34];
-//Run the melody arrays through all the functions
-~melody.(~malletMelody1, 3);
-~duration1.(~melody.(~malletMelody1, 3), 5);
-(
-~mallet1 = ~finish.(~duration1.(~melody.(~malletMelody1, 3), 5), a, b);
-~mallet2 = ~finish.(~duration1.(~melody.(~malletMelody2, 8), 7), a, b);
-)
-(
-~mallet3 = ~finish.(~duration1.(~melody.(~malletMelody3, 3), 7), a, b);
-~mallet4 = ~finish.(~duration1.(~melody.(~malletMelody4, 8), 3), a, b);
-)
-~drone = ~finish.(~duration2.(~melody.(~droneMelody, 2), 0), a, b);
-~bass = ~finish.(~duration2.(~melody.(~bassMelody, 2), 3), a, b);
-~pad = ~finish.(~duration2.(~melody.(~padMelody, 3), 1), a, b);
-
-//Screwin around
-(
-~bassSeq = Pbind(
-    \instrument, \bass,
-    \freq, Pseq( ~bass.at(0)/2, inf),
-    \dur, Pseq( ~bass.at(1)*2, inf),
-    \amp, Pseq( ~bass.at(2)/4, inf);
-).play(quant: 0);
-)
-(
-~mallet3Seq.stop;
-~mallet4Seq.stop;
-~mallet1Seq = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet1.at(0), inf),
-    //\dur, 1/2,
-	\dur, Pseq( ~mallet1.at(1), inf),
-    \amp, 0.6,
-	//Pseq( ~mallet1.at(2)*0.6, inf);
-).play(quant: 0);
-
-~mallet2Seq = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet2.at(0), inf),
-    \dur, 1/4,
-	//Pseq( ~mallet2.at(1), inf),
-    \amp, Pseq( ~mallet2.at(2)*0.5, inf);
-).play(quant: 0);
-)
-
-(
-~mallet1Seq.stop;
-~mallet2Seq.stop;
-~mallet3Seq = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet1.at(0), inf),
-    \dur, 1,
-	//Pseq( ~mallet1.at(1)/2, inf),
-    \amp, 0.6,
-	//Pseq( ~mallet1.at(2)*0.6, inf);
-).play(quant: 0);
-
-~mallet4Seq = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet4.at(0), inf),
-    \dur, 1/4,
-	//Pseq( ~mallet4.at(1), inf),
-    \amp, Pseq( ~mallet4.at(2)*0.5, inf);
-).play(quant: 0);
-)
---------------------------
-(
-~padSeq = Pbind(
-    \instrument, \pad,
-    \freq, Pseq( ~pad.at(0), inf),
-    \dur, Pseq( ~pad.at(1), inf),
-    \amp, Pseq( ~pad.at(2)*0.03, inf);
-).play(quant: 0);
-)
-
-(
-~mallet2Seq = Pbind(
-    \instrument, \mallet2,
-    \freq, Pseq( ~mallet2_1.at(0)*4, inf),
-    \dur, Pseq( ~mallet2_1.at(1), inf),
-    \amp, Pseq( ~mallet2_1.at(2)*0.1, inf);
-).play(quant: 0);
-
-~mallet1Seq.stream = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet1.at(0), inf),
-    \dur, 1,
-	//Pseq( ~mallet1.at(1)/2, inf),
-    \amp, Pseq( ~mallet1.at(2)*0.3, inf);
-).asStream;
-)
-(
-~droneSeq = Pbind(
-    \instrument, \drone,
-    \freq, Pseq(~drone.at(0)/4, inf),
-    \dur, Pseq(~drone.at(1), inf),
-    \amp, Pseq( ~drone.at(2)*0.3, inf);
-).play(quant: 0);
-)
-
-(
-~padSeq.stream = Pbind(
-    \instrument, \pad,
-    \freq, Pseq( ~pad.at(0)*2, inf),
-    \dur, Pseq( ~pad.at(1), inf),
-    \amp, Pseq( ~pad.at(2)*0.0, inf);
-).asStream;
-)
-~bassSeq.stop;
-(
-~mallet2Seq.stream = Pbind(
-    \instrument, \mallet2,
-    \freq, Pseq( ~mallet2_3.at(0)*8, inf),
-    \dur, Pseq( ~mallet2_3.at(1), inf),
-    \amp, Pseq( ~mallet2_3.at(2)*0.004, inf);
-).asStream;
-)
-(
-~mallet1Seq.stream = Pbind(
-    \instrument, \mallet,
-    \freq, Pseq( ~mallet1.at(0), inf),
-    \dur, Pseq( ~mallet1.at(1), inf),
-    \amp, Pseq( ~mallet1.at(2)*0.05, inf);
-).asStream;
-)
-(
-~droneSeq.stream = Pbind(
-    \instrument, \drone,
-    \freq, Pseq(~drone.at(0), inf),
-    \dur, Pseq(~drone.at(1)*2, inf),
-    \amp, Pseq( ~drone.at(2)*0.04, inf);
-).asStream;
-)
-(
-~mallet2Seq.stream = Pbind(
-    \instrument, \mallet2,
-    \freq, Pseq( ~mallet2_1.at(0)*4, inf),
-    \dur, Pseq( ~mallet2_1.at(1), inf),
-    \amp, Pseq( ~mallet2_1.at(2)*0.07, inf);
-).asStream;
-)
+Scale.directory;
